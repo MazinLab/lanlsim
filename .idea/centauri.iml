@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/mkidsim" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/status" />
+    </content>
+    <content url="file://$MODULE_DIR$/../packages/MKIDCore">
+      <sourceFolder url="file://$MODULE_DIR$/../packages/MKIDCore/mkidcore" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../packages/MKIDCore/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../packages/MKIDCore" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/../packages/MKIDCore/mkidcore.egg-info" />
+    </content>
+    <content url="file://$MODULE_DIR$/../packages/MKIDPipeline">
+      <sourceFolder url="file://$MODULE_DIR$/../packages/MKIDPipeline/mkidpipeline" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/../packages/MKIDPipeline/doc" />
+      <excludeFolder url="file://$MODULE_DIR$/../packages/MKIDPipeline/examples" />
+      <excludeFolder url="file://$MODULE_DIR$/../packages/MKIDPipeline/mkidpipeline.egg-info" />
+      <excludeFolder url="file://$MODULE_DIR$/../packages/MKIDPipeline/scripts" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

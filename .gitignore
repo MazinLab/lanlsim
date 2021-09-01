@@ -1,0 +1,8 @@
+build
+status
+data/transdata_0.5_1_mic
+data/transdata_0.5_1_mic.gz
+data/transdata_1_5_mic
+data/transdata_1_5_mic.gz
+/data/full_telluric_spectrum.txt
+example_scene.fits

@@ -1,0 +1,10 @@
+pip:
+  - multiprocessing_logging
+conda:
+  - hdf5>=1.10.4
+  - ruamel.yaml==0.16.12
+  - pytables>=3.6
+  - astroplan
+  - sharedarray
+  - lmfit>=0.9.11
+  - scikit-image
