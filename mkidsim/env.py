@@ -32,8 +32,8 @@ import pysynphot as S
 
 from .spectra import AtmosphericTransmission, SubaruTransmission
 
-
-
+MIN_TRIGGER_ENERGY = 1 / (1.5 * u.um)
+SATURATION_WAVELENGTH_NM = 400
 #Some basic definitions
 deadtime = 10 * u.us
 detector_shape = np.array([146, 140])
@@ -45,13 +45,14 @@ R_variance = .2
 R_0 = np.random.normal(scale=R_ref * R_variance, size=detector_shape)
 
 
-def R(w, pixel=None):
+def R(w, pixel=None, inverse=False):
+    if inverse:
+        w=1/w
     if pixel is not None:
         v = R_ref * R_wave / w + R_0[pixel]
     else:
         v = R_ref * R_wave / w[:, None, None] + R_0
-    return v.clip(1).value
-
+    return v.clip(1, 25).value
 
 
 class SpecgenInverse:

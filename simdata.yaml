@@ -1,0 +1,30 @@
+- !MKIDObservation
+  name: simulated  # A name
+  start: 0.0 # The start unix time, float ok, rounded down for H5 creation.
+  stop: 10.0 # A stop unit time, float ok. If not specified duration must be
+  dark: # An MKIDTimerange to use for a dark reference.
+  header: # A dictionary of fits header key overrides.
+    DEC: 0:0:0.0  # DEC of telescope pointing (+/-DD:MM:SS.SS)
+    INSTRUME: MEC # Instrument name
+    M_BASELI: true # Whether or not the baseline was remove from the data
+    M_BMAP: MEC_default # UUID of beammap
+    M_CFGHSH: FOO3123798AFE # Hash of config producing the output
+    M_CONEXX: 0 # The X position of the conex
+    M_CONEXY: 0 # The Y position of the conex
+    EQUINOX: J2000 # Standard FK5 (years)
+    OBJECT: SIMDATA # Object
+    RA: 0:0:0.0 # RA of telescope pointing (HH:MM:SS.SSS)
+    TELESCOP: Subaru # Telescope/System which Inst. is attached
+  wavecal: '' # A MKIDWavedata name
+  flatcal: '' # A MKIDFlatdata name
+  wcscal: wcscal0 # A MKIDWCSCal name
+  speccal: '' # A MKIDSpecdata nam
+- !MKIDWCSCalDescription
+  name: wcscal0  # A name
+  data: 10.4 mas # MKIDObservation, MKIDDither, or platescale (e.g. 10 mas)
+  pixel_ref: # The pixel position of the target centroid when on axis and the conex is at conex_ref
+  - 107
+  - 46
+  conex_ref: # The conex (x,y) position, [0, 1.0], when the target is at pixel_ref 
+  - -0.16
+  - -0.4

@@ -96,7 +96,8 @@ observed = 0
 
 # Compute photon arrival times and wavelengths for each photon
 for pixel, n in np.ndenumerate(pixel_count_image):
-    if not n: continue
+    if not n:
+        continue
 
     # Generate arrival times for the photons
     arrival_times = np.random.uniform(0, exp_time, size=n)
@@ -106,29 +107,38 @@ for pixel, n in np.ndenumerate(pixel_count_image):
     # ultimately the spectrum may vary with field position, but for now we'll use the global
     # specgen = SpecgenInverse(scene.sed_at_pixel(pixel))
     wavelengths = specgen(n) * u.micron
-
+    energies = 1/wavelengths
     # merge photon energies within 1us
     to_merge = (np.diff(arrival_times) < 1e-6).nonzero()[0]
     if to_merge.size:
-        cluster_starts = to_merge[np.concatenate(([0],(np.diff(to_merge) > 1).nonzero()[0] + 1))]
+        cluster_starts = to_merge[np.concatenate(([0], (np.diff(to_merge) > 1).nonzero()[0] + 1))]
         cluser_last = to_merge[(np.diff(to_merge) > 1).nonzero()[0]]+1
         cluser_last = np.append(cluser_last, to_merge[-1]+1)    # inclusive
         for start, stop in zip(cluster_starts, cluser_last):
             merge = slice(start+1, stop+1)
-            e = (1 / wavelengths[merge]).sum()+1/wavelengths[start]
-            wavelengths[start] = (1 / e).to('um')
-            wavelengths[merge] = np.nan * u.nm
 
+            energies[start] += energies[merge].sum()
+            energies[merge] = np.nan
+
+            # e = (1 / wavelengths[merge]).sum()+1/wavelengths[start]
+            # wavelengths[start] = (1 / e).to('um')
+            # wavelengths[merge] = np.nan * u.nm
+
+    # Determine measured energies
+    energy_width = energies / R(energies, pixel=pixel, inverse=True)  # The relevant R value for each photon pixel combo
+    measured_energies = np.random.normal(loc=energies, scale=energy_width)
+
+    # Filter those that wouldn't trigger
+    will_trigger = measured_energies/u.um > MIN_TRIGGER_ENERGY
+    if not will_trigger.any():
+        continue
     # Drop photons that arrive within the deadtime
-    detected = mask_deadtime(arrival_times, deadtime.to(u.s).value)
-    arrival_times = arrival_times[detected]
-    wavelengths = wavelengths[detected]
+    detected = mask_deadtime(arrival_times[will_trigger], deadtime.to(u.s).value)
 
-    # Determine the relevant r value for each photon and make into a width
-    width = wavelengths / R(wavelengths, pixel=pixel)
+    arrival_times = arrival_times[will_trigger][detected]
+    measured_wavelengths = 1000/measured_energies[will_trigger][detected]
+    measured_wavelengths.clip(SATURATION_WAVELENGTH_NM)
 
-    # Observe the wavelengths
-    measured_wavelengths = np.random.normal(loc=wavelengths, scale=width)
 
     # Add photons to the pot
     sl = slice(observed, observed + arrival_times.size)
@@ -136,6 +146,20 @@ for pixel, n in np.ndenumerate(pixel_count_image):
     photons.time[sl] = (arrival_times*1e6)  #in microseconds
     photons.resID[sl] = cfg.beammap.residmap[pixel[::-1]]
     observed += arrival_times.size
+
+#plt.
+# plt.imshow(pixel_count_image)
+# plt.colorbar().set_label('photons')
+# plt.xlabel('Pixel')
+# plt.ylabel('Pixel')
+# plt.title('F7 (6th mag) MEC focal plane input')
+#
+# plt.title('F7 (6th mag) sampled spectrum')
+# plt.hist(photons.wavelength*1000, bins=np.linspace(950, 1300, 1000), histtype='step', density=True, label='data')
+# plt.hist(photons.wavelength*1000, bins=np.linspace(950, 1300, 5), histtype='step', density=True, label='MEC')
+# plt.ylabel('Photon Flux Density')
+# plt.xlabel('Wavelength (nm)')
+
 
 print(f'Detected {observed} of {photons.size} ({observed/photons.size*100:.1f}%)')
 # Store the photons into an h5 file
