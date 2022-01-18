@@ -6,13 +6,13 @@
   header: # A dictionary of fits header key overrides.
     DEC: 0:0:0.0  # DEC of telescope pointing (+/-DD:MM:SS.SS)
     INSTRUME: MEC # Instrument name
-    M_BASELI: true # Whether or not the baseline was remove from the data
-    M_BMAP: MEC_default # UUID of beammap
-    M_CFGHSH: FOO3123798AFE # Hash of config producing the output
-    M_CONEXX: 0 # The X position of the conex
-    M_CONEXY: 0 # The Y position of the conex
+    M_BASELI: true # !UNKNOWN MEC HEADER KEY!
+    M_BMAP: MEC_default # !UNKNOWN MEC HEADER KEY!
+    M_CFGHSH: FOO3123798AFE # !UNKNOWN MEC HEADER KEY!
+    M_CONEXX: 0 # !UNKNOWN MEC HEADER KEY!
+    M_CONEXY: 0 # !UNKNOWN MEC HEADER KEY!
     EQUINOX: J2000 # Standard FK5 (years)
-    OBJECT: SIMDATA # Object
+    OBJECT: HIP HIP109427 # Object
     RA: 0:0:0.0 # RA of telescope pointing (HH:MM:SS.SSS)
     TELESCOP: Subaru # Telescope/System which Inst. is attached
   wavecal: '' # A MKIDWavedata name
@@ -28,3 +28,4 @@
   conex_ref: # The conex (x,y) position, [0, 1.0], when the target is at pixel_ref 
   - -0.16
   - -0.4
+  source_locs: [] # The RA/DEC coordinates of the sources in the image 

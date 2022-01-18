@@ -5,8 +5,8 @@
   exclude_flags: # A list of pixel flag names to exclude
   min_wave: 950.0 nm # Wavelength start for wavelength sensitive outputs
   max_wave: 1375.0 nm # Wavelength stop for wavelength sensitive outputs, 
-  start_offset: 0 # start time (s) offset from start of data
-  units: photons/s # photons|photons/s
+  start_offset: 0 # start offset (s) into data (per frame if dithered)
+  units: photons # photons|photons/s
   use_weights: false # Use photon weights
   lincal: false # Apply and use lincal, slow
   pixcal: true # Apply pixcal
@@ -14,7 +14,7 @@
   flatcal: false # Apply flatcal
   movie_runtime: 0.0 # Runtime of movie, defaults to realtime
   timestep: 1.0 # Duration of time bins in output cubes with a temporal axis (req. by temporal)
-  wavestep: 100.0 nm # Width of wavelength bins in output cubes with a wavelength axis
+  wavestep: 85.0 nm # Width of wavelength bins in output cubes with a wavelength axis
 - !MKIDOutput
   name: out1  # A name
   data: simulated # An data name
@@ -22,8 +22,8 @@
   exclude_flags: # A list of pixel flag names to exclude
   min_wave: 950.0 nm # Wavelength start for wavelength sensitive outputs
   max_wave: 1375.0 nm # Wavelength stop for wavelength sensitive outputs, 
-  start_offset: 0 # start time (s) offset from start of data
-  units: photons/s # photons|photons/s
+  start_offset: 0 # start offset (s) into data (per frame if dithered)
+  units: photons # photons|photons/s
   use_weights: false # Use photon weights
   lincal: false # Apply and use lincal, slow
   pixcal: true # Apply pixcal
@@ -31,7 +31,7 @@
   flatcal: false # Apply flatcal
   movie_runtime: 0.0 # Runtime of movie, defaults to realtime
   timestep: 1.0 # Duration of time bins in output cubes with a temporal axis (req. by temporal)
-  wavestep: 100.0 nm # Width of wavelength bins in output cubes with a wavelength axis
+  wavestep: 85.0 nm # Width of wavelength bins in output cubes with a wavelength axis
 - !MKIDOutput
   name: out2  # A name
   data: simulated # An data name
@@ -39,8 +39,8 @@
   exclude_flags: # A list of pixel flag names to exclude
   min_wave: 950.0 nm # Wavelength start for wavelength sensitive outputs
   max_wave: 1375.0 nm # Wavelength stop for wavelength sensitive outputs, 
-  start_offset: 0 # start time (s) offset from start of data
-  units: photons/s # photons|photons/s
+  start_offset: 0 # start offset (s) into data (per frame if dithered)
+  units: photons # photons|photons/s
   use_weights: false # Use photon weights
   lincal: false # Apply and use lincal, slow
   pixcal: true # Apply pixcal
@@ -48,4 +48,4 @@
   flatcal: false # Apply flatcal
   movie_runtime: 0.0 # Runtime of movie, defaults to realtime
   timestep: 1.0 # Duration of time bins in output cubes with a temporal axis (req. by temporal)
-  wavestep: 100.0 nm # Width of wavelength bins in output cubes with a wavelength axis
+  wavestep: 85.0 nm # Width of wavelength bins in output cubes with a wavelength axis

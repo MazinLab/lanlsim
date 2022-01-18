@@ -6,3 +6,6 @@ data/transdata_1_5_mic
 data/transdata_1_5_mic.gz
 /data/full_telluric_spectrum.txt
 example_scene.fits
+mkidpipe*.log
+out
+*.h5
