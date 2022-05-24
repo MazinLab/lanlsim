@@ -43,7 +43,7 @@ def PhoenixModel(teff, feh, logg, desired_magnitude=None):
     return sp
 
 
-def SatModel(file='data/Time0000_Pose0000.lc', materials='all', exclude=tuple()):
+def SatModel(file='data/Time0000_Pose0000.lc', materials='all', exclude=tuple(), swap=tuple()):
     with open(file) as f:
         header = f.readline()
     material_labels = header.strip(',\n').split(',')
@@ -64,6 +64,11 @@ def SatModel(file='data/Time0000_Pose0000.lc', materials='all', exclude=tuple())
         materials = material_labels
 
     use = [material_labels.index(m) for m in materials if m not in exclude]
+
+    if swap:
+        renorm = 1+radiance[:, material_labels.index(swap[1])].mean()/radiance[:, material_labels.index(swap[0])].mean()
+        print(f'Swapping {swap[0]} for {swap[1]} by renormalizing to {renorm}')
+        radiance[:, material_labels.index(swap[0])] *= renorm
 
     from pysynphot import ArraySpectrum
     sp = ArraySpectrum(wavelengths, radiance[:, use].sum(1), fluxunits='flam')

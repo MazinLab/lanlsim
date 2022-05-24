@@ -9,3 +9,8 @@ example_scene.fits
 mkidpipe*.log
 out
 *.h5
+data/goeslib
+out2
+grid
+.idea
+data

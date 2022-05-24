@@ -15,7 +15,7 @@ desired_magnitude = 3.52
 # sp = PhoenixModel(9040, -0.38, 4.27, desired_magnitude=desired_magnitude if not desired_avg_countrate else None)
 
 sp = SatModel(materials='all')
-sp2 = SatModel(exclude=('mli_black',))
+sp2 = SatModel(exclude=('mli_black',), swap=(('mli_silver', 'mli_black')))
 
 
 def make_plot(image, photons, title):
@@ -37,16 +37,39 @@ def make_plot(image, photons, title):
 
 
 
-image, gen, observatio, photons, observed = simulate_observation(sp, psf_radius, exp_time, nd=3.5)
-plt.figure()
-make_plot(image, photons, 'Satellite')
+image, gen, observation, dc_throughput, flat_field, photons, total_launched = simulate_observation(sp, psf_radius, exp_time, nd=3.5)
+
+
+# Dummy broaden to get in the ballpark as a test
+c, w = np.histogram(gen(int(observation.countrate())) / 10, bins=observation.binset / 10)
+import scipy.ndimage as ndi
+broad = ndi.gaussian_filter(c, 1000/10 / np.diff(w)[0], mode='nearest')
+
+plt.subplot(121)
+plt.plot(w[:-1], c*flat_field.mean(),  label='Generated')
+plt.plot(w[:-1], broad*flat_field.mean(), label='Generated (est. convol)')
+plt.plot(observation.binwave / 10, observation.binflux*flat_field.mean(), drawstyle='steps-mid', label='binned synphot')
+c,w = np.histogram(photons.wavelength, bins=observation.binset/10)
+plt.plot(w[:-1], c/exp_time, label='photon rate')
+plt.legend()
+print(f'Detected {photons.size} of {total_launched} ({photons.size/total_launched*100:.1f}%)')
+plt.title('Satellite')
 cfg = generate_default_config(instrument='MEC')
 cfg.update('paths.out', './')
-print(f'Detected {observed} of {photons.size} ({observed/photons.size*100:.1f}%)')
-buildfromarray(photons[:observed], config=cfg, user_h5file='./satellite.h5')
+buildfromarray(photons, config=cfg, user_h5file='./satellite.h5')
 
-image, gen, photons, observed = simulate_observation(sp2, psf_radius, exp_time, nd=3.5)
-print(f'Detected {observed} of {photons.size} ({observed/photons.size*100:.1f}%)')
-plt.figure()
-make_plot(image, photons, 'Satellite (No Black)')
+
+image, gen, observation, dc_throughput, flat_field, photons, observed= simulate_observation(sp2, psf_radius, exp_time, nd=3.5)
+plt.subplot(122)
+c, w = np.histogram(gen(int(observation.countrate())) / 10, bins=observation.binset / 10)
+import scipy.ndimage as ndi
+broad = ndi.gaussian_filter(c, 1000/10 / np.diff(w)[0], mode='nearest')
+plt.plot(w[:-1], c*flat_field.mean(),  label='Generated')
+plt.plot(w[:-1], broad*flat_field.mean(), label='Generated (est. convol)')
+plt.plot(observation.binwave / 10, observation.binflux*flat_field.mean(), drawstyle='steps-mid', label='binned synphot')
+c,w = np.histogram(photons.wavelength, bins=observation.binset/10)
+plt.plot(w[:-1], c/exp_time, label='photon rate')
+plt.legend()
+plt.title('Satellite (mli_sliver)')
+print(f'Detected {photons.size} of {total_launched} ({photons.size/total_launched*100:.1f}%)')
 buildfromarray(photons[:observed], config=cfg, user_h5file='./satellite_noblack.h5')
