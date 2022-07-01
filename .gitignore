@@ -11,6 +11,10 @@ out
 *.h5
 data/goeslib
 out2
-grid
+grid_bad
 .idea
 data
+scratch
+grid
+admin/report
+admin
