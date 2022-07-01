@@ -5,11 +5,14 @@ import astropy.units as u
 import astropy.io
 from logging import getLogger
 
+# goes solid angle np.pi*(3/35.786e6)**2
+
 
 class SatSpec:
-    def __init__(self, file, materials='all', solid_angle=np.pi*(1/36e6/2)**2, exclude=tuple(), swap=tuple(), mag_j=None):
+    def __init__(self, file, materials='all', solid_angle=(5e-6/5000)**2, exclude=tuple(), swap=tuple(), mag_j=None):
         """
-        1 m satillite at GEO ~36e6 m ~1/36e6 rad-> pi*(1/36e6/2)**2 ~6.06e-16 sr
+        GOES-R is ~29 m^2 or about a 6m circle's worth of area
+        3 m radius satillite at GEO ~36e6 m ~1/36e6 rad-> pi*(3/35.786e6/2)**2 ~6.06e-16 sr
         """
         self.mag_j = mag_j
         with open(file) as f:
@@ -17,7 +20,11 @@ class SatSpec:
         material_labels = header.strip(',\n').split(',')
         radiance_vector = np.loadtxt(file, delimiter=',', skiprows=1)
         self.wavelengths = radiance_vector[:, 0]*1e4*u.angstrom  # um to AA
-        radiance = radiance_vector[:, 1:]*solid_angle*1e3  #W/cm^2/sr/um -> erg/s/cm^2/AA
+        #radiance = radiance_vector[:, 1:]*solid_angle*1e3  #W/cm^2/sr/um -> erg/s/cm^2/AA
+        radiance = radiance_vector[:, 1:] * solid_angle * 1e3 * np.sqrt(2)  #rt2 is arbitrary
+        # W/cm^2/sr/um == J/s/cm^2/um == 10^7 erg/s/cm^2/(AA * 10^4) = 10^3 erg/s/cm^2/AA
+        #um = 10^4 AA
+        #J = 10^7 erg
         #flam =erg/s/cm^2/AA
         self.ref_solid_angle = solid_angle
         if materials is 'all':
@@ -30,6 +37,7 @@ class SatSpec:
             getLogger(__name__).info(f'Swapping {swap[0]} for {swap[1]} by renormalizing to {renorm}')
             radiance[:, material_labels.index(swap[0])] *= renorm
 
+        self.file=file
         fn = os.path.basename(file)
         self.time = int(fn[4:8])
         self.pose = int(fn[13:17])
