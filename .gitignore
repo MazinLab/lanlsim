@@ -18,3 +18,5 @@ scratch
 grid
 admin/report
 admin
+simdata.yaml
+simout.yaml
