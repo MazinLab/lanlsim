@@ -78,6 +78,7 @@ from specutils.manipulation import gaussian_smooth
 fcrzf = FluxConservingResampler(extrapolation_treatment='zero_fill')
 flam = u.erg / u.s / u.cm ** 2 / u.angstrom
 
+
 def Spectrum1D_to_counts(s, primary_area):
     """compute counts in Spectrum1D"""
     counts = primary_area * u.cm ** 2 * s.flux * np.diff(s.spectral_axis)[0]
@@ -205,7 +206,7 @@ def simulate(pixel_count_image, specgen, exp_time, residmap):
 
         arrival_times = arrival_times[will_trigger][detected]
         measured_wavelengths = 1000 / measured_energies[will_trigger][detected]
-        measured_wavelengths.clip(SATURATION_WAVELENGTH_NM)
+        measured_wavelengths.clip(SATURATION_WAVELENGTH_NM, out=measured_wavelengths)
 
         # Add photons to the pot
         sl = slice(observed, observed + arrival_times.size)
@@ -246,7 +247,6 @@ def incident_spectrum(sp, nd=DEFAULT_ND, desired_avg_countrate=None):
 
     spec = sp * telescope * atmosphere
 
-    #might be able to move and do on the observation
     if desired_avg_countrate:
         spec = spec.renorm(desired_avg_countrate / (R_wave / R_ref).to('AA').value, 'photlam', bp)
 
@@ -256,30 +256,13 @@ def incident_spectrum(sp, nd=DEFAULT_ND, desired_avg_countrate=None):
     full_bp = bp * telescope * atmosphere * dc_throughput
 
     binset = np.arange(angstrom_domain[0], angstrom_domain[1]+1, 1)
-    a = S.Observation(spec, bp, binset=binset)  # binset needed?
-    a2 = S.Observation(sp, full_bp, binset=binset)  # binset needed?
+    a = S.Observation(spec, bp, binset=binset)  # binset needed?  expect a.countrate() to be 446.9e6 for a 7.59 mag satillite
+    observation = S.Observation(sp, full_bp, binset=binset)  # binset needed?
 
     a.convert('counts')
+    observation.convert('counts')
 
-    specgen = SpecgenInverse(a, wavedom=angstrom_domain)
-
-    # plt.figure()
-    # plt.plot(a.binwave / 10, a.binflux*dc_throughput, drawstyle='steps-mid', label='binned')
-    # plt.hist(specgen(int(a2.countrate())) / 10, bins=binset / 10, histtype=u'step', label='Generated')
-    # plt.xlabel('nm')
-    # plt.ylabel('Photons')
-    # plt.legend()
-
-    # plt.figure()
-    # plt.plot(a2.wave, a2.flux, label='native')
-    a2.convert('counts')
-
-    # plt.plot(a2.binwave/10, a2.binflux*dc_throughput, drawstyle='steps-mid', label='binned')
-    # plt.xlim(5030, 5050)
-    # plt.xlabel(a2.waveunits)
-    # plt.ylabel(a2.fluxunits)
-
-    return specgen, a2, dc_throughput
+    return SpecgenInverse(a, wavedom=angstrom_domain), observation, dc_throughput
 
 
 def simulate_observation(sp, psf_radius, exp_time, nd=DEFAULT_ND, desired_avg_countrate=None):
@@ -289,39 +272,8 @@ def simulate_observation(sp, psf_radius, exp_time, nd=DEFAULT_ND, desired_avg_co
 
     specgen, a2, dc_throughput = incident_spectrum(sp, nd=nd, desired_avg_countrate=desired_avg_countrate)
 
-    # plt.figure()
-    # plt.plot(a.binwave / 10, a.binflux*dc_throughput, drawstyle='steps-mid', label='binned')
-    # plt.hist(specgen(int(a2.countrate())) / 10, bins=binset / 10, histtype=u'step', label='Generated')
-    # plt.xlabel('nm')
-    # plt.ylabel('Photons')
-    # plt.legend()
-
-    # plt.figure()
-    # plt.plot(a2.wave, a2.flux, label='native')
-    # a2.convert('counts')
-    # plt.plot(a2.binwave/10, a2.binflux*dc_throughput, drawstyle='steps-mid', label='binned')
-    # plt.xlim(5030, 5050)
-    # plt.xlabel(a2.waveunits)
-    # plt.ylabel(a2.fluxunits)
-    # a.integrate()
-    # a.countrate()
-
-    # Patch in to MIRISIM
-    # a.convert('um')
-    # tab_sed = a.tabulate().resample(binset)
-    # spectrum._PYSPsed = tab_sed
-    # spectrum.goodwrange = tab_sed.wave[[0, -1]]
-
-    # Create a Scene
-    # source_pos = SkyCoord(0*u.deg, 0*u.deg)
-    #
-    # scene = skysim.Point()
-    # scene.set_SED(spectrum)
-
     # Convolve scene with PSF and integrate to get a detector count image. Include throughput effects
     grid, sampled_psf = get_mec_psf(fov, detector_sampling, psf_radius)
-    # scene.convolve_with(sampled_psf)
-
 
     try:
         from mkidpipeline.pipeline import generate_default_config
@@ -334,10 +286,7 @@ def simulate_observation(sp, psf_radius, exp_time, nd=DEFAULT_ND, desired_avg_co
         log.info('Skipping flat field', exc_info=True)
         flat_field = None
 
-
-    photon_rate_image = a2.countrate() * sampled_psf * flat_field# photons/s
-    # photon_rate_cube = scene.buildcube(wavelengths=detector_wavelength_range, fov=fov, units='photon/s',
-    #                                    spatial_sampling=detector_sampling)
+    photon_rate_image = a2.countrate() * sampled_psf * flat_field  # photons/s
 
     # Add in background
     pass
@@ -345,9 +294,10 @@ def simulate_observation(sp, psf_radius, exp_time, nd=DEFAULT_ND, desired_avg_co
     # Compute a total number of emitted photons per pixel pos on sky
     pixel_count_image = np.random.poisson(photon_rate_image * exp_time)
 
-    # TODO We've computed the expected count rate image for our observing bandpass but photons outside of that region could
-    # make it through and would combine as below. If so the total number we need to deal with for random draws needs to be
-    # increased. Detector cant get photons below 950 but may register photons as below 950.
+    # We've computed the expected count rate image for our observing bandpass but
+    #  photons outside of that region could make it through and would combine as below.
+    #  If so the total number we need to deal with for random draws needs to be increased.
+    #  Detector cant receive photons below 950 but may register photons as below 950.
 
     photons, observed = simulate(pixel_count_image, specgen, exp_time, cfg.beammap.residmap)
     return pixel_count_image * flat_field, specgen, a2, dc_throughput, flat_field, photons[:observed], photons.size

@@ -29,9 +29,7 @@ cfg = pipe.generate_default_config(instrument='MEC')
 cfg.update('paths.out', './out2/')
 cfg.update('paths.tmp', './scratch/')
 cfg.update('paths.database', './db/')
-with open('pipe.yaml', 'w') as f:
-    config.yaml.dump(cfg, f)
-config.configure_pipeline(cfg)
+config.configure_pipeline('pipe.yaml')
 outputs = MKIDOutputCollection('simout.yaml', datafile='simdata.yaml')
 dataset = outputs.dataset
 
@@ -41,7 +39,6 @@ i,j,k=0,0,0
 sim=(silversim, goldsim)[i]
 t=times[j]
 pose=poses[k]
-
 
 for i, sim in enumerate((silversim, goldsim)):
     fig, axes = plt.subplots(len(times), len(poses), sharex=True, figsize=(15, 10),
@@ -63,59 +60,15 @@ for i, sim in enumerate((silversim, goldsim)):
             specgen, incident_sp, dc_throughput = incident_spectrum(sim.spec(t, pose).pysynphot, nd=3.5)
 #================
 
-
-            # result = simulate_observation(sp, psf_radius, exp_time, nd=3.5)
-            # pixel_count_image_ff, specgen, a2, dc_throughput, flat_field, photons, photonssize = result
             phots = pt.query(startw=detector_wavelength_range[0].value, stopw=detector_wavelength_range[1].value)
             bp = Spectrum1D(flux=incident_sp.bandpass.throughput * u.dimensionless_unscaled,
                             spectral_axis=incident_sp.bandpass.wave * u.angstrom)
             sp = Spectrum1D(flux=incident_sp.spectrum.flux * flam, spectral_axis=incident_sp.spectrum.wave * u.angstrom)
-            # same as
-            # sp = Spectrum1D(flux=sim.spec(t, pose).rawspec * flam, spectral_axis=sim.spec(t, pose).wavelengths)
+            # is the same as  Spectrum1D(flux=sim.spec(t, pose).rawspec * flam,
+            #   spectral_axis=sim.spec(t, pose).wavelengths)
             bp = fcrzf(bp, sp.wavelength)
             incident = bp * sp
 
-            # stdev = detector_wavelength_center / R_at(detector_wavelength_center) / 2.35482 / np.diff(incident.spectral_axis)[0]  #Rref is fwhm
-            # smoothed = gaussian_smooth(incident, stddev=stdev.si.value)
-            # smoothedbin = fcrzf(smoothed, wave*10*u.angstrom) # f['CUBE_EDGES'].data.edges * 10 * u.angstrom)
-
-            # counts = Spectrum1D_to_counts(smoothedbin, incident_sp.bandpass.primary_area)
-
-            # plt.figure(figsize=(16,9))
-            # ax = plt.subplot(131)
-            # norm = np.nanmax(sp.flux)
-            # plt.step(sp.spectral_axis, sp.flux/norm, label=f'GOES, norm {norm:.1g}')
-            #
-            # norm = np.nanmax(bp.flux)
-            # plt.step(bp.spectral_axis, bp.flux/norm, label=f'Bandpass {norm:.1g}')
-            #
-            # norm=np.nanmax(incident.flux)
-            # plt.step(incident.spectral_axis, incident.flux/norm, label=f'Incident {norm:.1g}')
-            # plt.ylabel('Normalized Flux')
-            # plt.xlabel('$\AA$')
-            # plt.title('erg/s/AA/cm2')
-            # plt.legend()
-            # plt.xlim(9000,14000)
-            #
-            # plt.subplot(132)
-            # plt.step(smoothedbin.spectral_axis, counts.si.value*.7, label='Conv., bin., w/ff')
-            # plt.step(wave*10, data[i, j, k].sum(1).sum(1), label=f'MEC Sim')
-            # plt.ylabel('Counts')
-            # plt.xlabel('$\AA$')
-            # plt.ylim(0, None)
-            # plt.xlim(9000,14000)
-            # plt.legend()
-            #
-            # plt.subplot(133)
-            # plt.hist(phots['wavelength']*10, incident.spectral_axis.value, histtype='step', label='Extracted (10s)')
-            # # plt.hist(photons['wavelength']*10, incident.spectral_axis.value, histtype='step', label='Extracted Hr (10s)')
-            # plt.step(smoothed.spectral_axis, Spectrum1D_to_counts(smoothed, incident_sp.bandpass.primary_area)**10,
-            #          label='Conv., w/ff (10s)')
-            # plt.ylabel('Counts')
-            # plt.xlabel('$\AA$')
-            # plt.xlim(9000,14000)
-            # plt.legend()
-            # plt.tight_layout()
 # ================
             # norm=np.nanmax(incident.flux)
             stdev = detector_wavelength_center / R_at(detector_wavelength_range[1]) / 2.35482 / np.diff(incident.spectral_axis)[0]  #Rref is fwhm
