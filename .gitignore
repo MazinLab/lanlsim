@@ -14,9 +14,8 @@ out2
 grid_bad
 .idea
 data
-scratch
 grid
-admin/report
 admin
 simdata.yaml
 simout.yaml
+scratch
